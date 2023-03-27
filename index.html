@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GLTF, GUI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        #webgl-container {
+            height: 500px;
+            width: 100%;
+        }
+
+        .sidebar {
+            height: 100%;
+            width: 200px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+            padding-top: 20px;
+        }
+
+        .sidebar a {
+            padding: 8px 8px 8px 16px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #000;
+            display: block;
+        }
+
+        .sidebar a:hover {
+            color: #007bff;
+        }
+    </style>
+    <link rel="stylesheet" href="base1.css">
+    <script type="module" src="script-base.js" defer></script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <a href="#">Home</a>
+        <a href="#">Features</a>
+        <a href="#">Pricing</a>
+    </div>
+    <!-- 햄버거 메뉴 아이콘 추가 -->
+    <div class="hamburger-menu" onclick="toggleSidebar()">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+
+    <div class="content-wrapper"> <!-- 클래스 추가 -->
+        <header>
+            <h1>GLTF, GUI</h1>
+        </header>
+
+        <div class="webgl-wrapper">
+            <div id="webgl-container"></div>
+        </div>
+    </div>
+
+</body>
+
+<script>
+    function toggleSidebar() {
+        let sidebar = document.querySelector('.sidebar');
+        let sidebarWidth = sidebar.style.width;
+
+        if (sidebarWidth === '0px' || sidebarWidth === '') {
+            sidebar.style.width = '200px';
+        } else {
+            sidebar.style.width = '0px';
+        }
+    }
+</script>
+
+</html>

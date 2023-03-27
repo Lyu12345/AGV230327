@@ -1,0 +1,121 @@
+/* basic.css */
+
+/* Reset margins and paddings */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body style */
+body {
+    font-family: Arial, sans-serif;
+    /* line-height: 1.6; */
+    margin: 0;
+    height: 100vh; /* 화면 높이와 동일한 높이로 설정 */
+    background-color: #f4f4f4;
+}
+
+/* Header style */
+header {
+    background-color: #007bff;
+    color: #fff;
+    text-align: center;
+    height: 60px;
+    /* padding: 0.1rem; */
+    padding: 10px;
+}
+
+/* Sidebar style */
+.sidebar {
+    height: 100%;
+    width: 100px; /* 이 값을 변경하여 사이드바의 폭을 조절하세요 html과 똑같이 해아함 */
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #172029;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+/* 사이드바 글자 */
+.sidebar a {
+    padding: 8px 8px 8px 16px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #e4e1e1;
+    display: block;
+}
+
+.sidebar a:hover {
+    color: #007bff;
+}
+
+/* Main content style */
+main {
+    margin-left: 200px;
+    padding: 1rem;
+}
+
+.webgl-wrapper {
+    height: calc(100vh - 60px - 10px * 2); /* 화면 높이에서 헤더 높이와 패딩을 뺀 만큼의 높이로 설정 */
+    /* width: calc(100% - 200px); */
+    width: 100%;
+    overflow: hidden;
+}
+
+/* WebGL container style */
+#webgl-container {
+    /* height: 500px; */
+    height: 100%;
+    width: 100%;
+    background-color: #fff;
+    /* margin-bottom: 1rem; */
+}
+
+.hamburger-menu {
+    display: none;
+    cursor: pointer;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+}
+
+.hamburger-menu div {
+    width: 25px;
+    height: 3px;
+    background-color: #333;
+    margin: 5px 0;
+    transition: 0.4s;
+}
+
+.content-wrapper {
+    margin-left: 100px; /* 기본 margin-left 값 */
+}
+
+/* 화면 폭이 768px 이하일 때 */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 0;
+        padding-top: 0;
+        background-color: transparent;
+    }
+
+    .sidebar a {
+        color: transparent;
+    }
+
+    .hamburger-menu {
+        display: block;
+    }
+
+    .content-wrapper {
+        margin-left: 0; /* 작은 화면에서 margin-left 값 변경 */
+    }
+}
+
+#webgl-container {
+    position: relative;
+}
