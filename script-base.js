@@ -20,16 +20,19 @@ function App() {
     let orbitCtrl;
     const raycaster = new THREE.Raycaster();
     let destination = null;
+    let mobileClickMode = false; // m신공.
+
 
     setupCamera();
     // orbitCtrl = setupOrbitControls();
     loadModel();
     setupBackgroundModel();
     setupLight();
-    window.addEventListener('contextmenu', handleRightClick);
     window.addEventListener('keydown', handleKeyDown);
     divContainer.addEventListener('mousemove', onMouseMove);
     window.addEventListener('resize', resize);
+    renderer.domElement.addEventListener('mousedown', handleMouseDown, false);
+    renderer.domElement.addEventListener('contextmenu', handleRightClick, false);
     resize();
     requestAnimationFrame(render);
 
@@ -166,25 +169,13 @@ function App() {
             geometry.dispose();
         }, animationDuration);
     }
-
     function handleRightClick(event) {
         event.preventDefault(); // 기본 우클릭 메뉴 비활성화
-        const intersects = getIntersects(event.clientX, event.clientY);
+        if (event.button === 2 || (event.button === 0 && mobileClickMode)) {
+            const intersects = getIntersects(event.clientX, event.clientY);
 
-        if (destination) {
-            const point = destination;
-            createClickEffect(point);
-
-            if (event.shiftKey) {
-                moveQueue.push(point);
-            } else {
-                TWEEN.removeAll();
-                moveQueue = [point];
-                moveToNextPoint();
-            }
-        } else {
-            if (intersects.length > 0) {
-                const point = intersects[0].point;
+            if (destination) {
+                const point = destination;
                 createClickEffect(point);
 
                 if (event.shiftKey) {
@@ -194,10 +185,22 @@ function App() {
                     moveQueue = [point];
                     moveToNextPoint();
                 }
+            } else {
+                if (intersects.length > 0) {
+                    const point = intersects[0].point;
+                    createClickEffect(point);
+
+                    if (event.shiftKey) {
+                        moveQueue.push(point);
+                    } else {
+                        TWEEN.removeAll();
+                        moveQueue = [point];
+                        moveToNextPoint();
+                    }
+                }
             }
         }
     }
-
     function moveToNextPoint() {
         if (moveQueue.length === 0) {
             return;
@@ -242,11 +245,26 @@ function App() {
         return agv.children.some((child) => trayList.includes(child));
     }
 
+    function handleMouseDown(event) {
+        if (mobileClickMode && event.button === 0) {
+            handleRightClick(event);
+            mobileClickMode = false;
+            renderer.domElement.style.cursor = 'default'; // 커서 스타일을 원래대로 돌림
+        } else if (event.button === 0 || event.button === 2) {
+            mobileClickMode = false;
+            renderer.domElement.style.cursor = 'default'; 
+        }
+    }
+
     function handleKeyDown(event) {
         if (event.key === 's' || event.key === 'h' || event.key === 'b') {
             TWEEN.removeAll();
             moveQueue = [];
+        } else if (event.key === 'm') {
+            mobileClickMode = true ; 
+            renderer.domElement.style.cursor = 'crosshair'
         }
+
         if (event.key === 'f') {
             const targetY = 2;
             const coords = { y: AGV_Center_01.position.y };
@@ -285,7 +303,7 @@ function App() {
         if (event.key === 'g') {
             const maxDistance = 2; // 주변 2 미터
             const nearestTray = findNearestTray(AGV_Center_01, maxDistance);
-    
+
             if (nearestTray && !AGV_Center_01.children.includes(nearestTray) && !hasTray(AGV_Center_01)) {
                 nearestTray.position.set(0, 0, 0);
                 AGV_Center_01.add(nearestTray);
@@ -293,7 +311,7 @@ function App() {
         } else if (event.key === 'e') {
             const trayList = [tray_01, tray_02];
             const tray = AGV_Center_01.children.find((child) => trayList.includes(child));
-    
+
             if (tray) {
                 const trayWorldPosition = tray.getWorldPosition(new THREE.Vector3());
                 tray.position.copy(trayWorldPosition);
@@ -301,6 +319,11 @@ function App() {
                 AGV_Center_01.remove(tray);
             }
         }
+        if (['s', 'h', 'f', 'd', 'b', 'g', 'e'].includes(event.key)) {
+            mobileClickMode = false;
+            renderer.domElement.style.cursor = 'default'; 
+        }
+
     }
 
     function onMouseMove(event) {
@@ -312,23 +335,22 @@ function App() {
         raycaster.setFromCamera(mouse, camera);
         const intersects1 = raycaster.intersectObjects([tray_01], true);
         const intersects2 = raycaster.intersectObjects([tray_02], true);
-
-        if (intersects1.length > 0) {
-            renderer.domElement.style.cursor = 'pointer';
-            destination = tray_01.position.clone();
-            // console.log("Mouse over an object", destination);
-        } else if (intersects2.length > 0) {
-            renderer.domElement.style.cursor = 'pointer';
-            destination = tray_02.position.clone();
-            // console.log("Mouse over an object", destination);
+    
+        if (mobileClickMode) {
+            renderer.domElement.style.cursor = 'crosshair';
         } else {
-            renderer.domElement.style.cursor = 'default';
-            destination = null;
-            // console.log("Mouse over an object", destination);
+            if (intersects1.length > 0) {
+                renderer.domElement.style.cursor = 'pointer';
+                destination = tray_01.position.clone();
+            } else if (intersects2.length > 0) {
+                renderer.domElement.style.cursor = 'pointer';
+                destination = tray_02.position.clone();
+            } else {
+                renderer.domElement.style.cursor = 'default';
+                destination = null;
+            }
         }
-
     }
-
 
     function setupLight() {
         const lightH = new THREE.HemisphereLight(0xB1E1FF, 0xB97A20, 1);
