@@ -172,7 +172,7 @@ function App() {
         const intersects = getIntersects(event.clientX, event.clientY);
 
         if (destination) {
-            const point = destination ;
+            const point = destination;
             createClickEffect(point);
 
             if (event.shiftKey) {
@@ -221,12 +221,34 @@ function App() {
             .start();
     }
 
+    function findNearestTray(agv, maxDistance) {
+        const trayList = [tray_01, tray_02];
+        let nearestTray = null;
+        let minDistance = Number.MAX_VALUE;
+
+        trayList.forEach((tray) => {
+            const distance = agv.position.distanceTo(tray.position);
+            if (distance < maxDistance && distance < minDistance) {
+                nearestTray = tray;
+                minDistance = distance;
+            }
+        });
+
+        return nearestTray;
+    }
+
+    function hasTray(agv) {
+        const trayList = [tray_01, tray_02];
+        return agv.children.some((child) => trayList.includes(child));
+    }
+
     function handleKeyDown(event) {
-        if (event.key === 's' || event.key === 'h') {
+        if (event.key === 's' || event.key === 'h' || event.key === 'b') {
             TWEEN.removeAll();
             moveQueue = [];
-        } else if (event.key === 'f') {
-            const targetY = 2; // 1 meter above ground
+        }
+        if (event.key === 'f') {
+            const targetY = 2;
             const coords = { y: AGV_Center_01.position.y };
 
             new TWEEN.Tween(coords)
@@ -247,6 +269,37 @@ function App() {
                     AGV_Center_01.position.setY(coords.y);
                 })
                 .start();
+        } else if (event.key === 'b') {
+            const targetPosition = new THREE.Vector3(0, 0, 0);
+            const coords = { x: AGV_Center_01.position.x, y: AGV_Center_01.position.y, z: AGV_Center_01.position.z };
+
+            new TWEEN.Tween(coords)
+                .to(targetPosition, 1000)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .onUpdate(() => {
+                    AGV_Center_01.position.set(coords.x, coords.y, coords.z);
+                })
+                .start();
+        }
+
+        if (event.key === 'g') {
+            const maxDistance = 2; // 주변 2 미터
+            const nearestTray = findNearestTray(AGV_Center_01, maxDistance);
+    
+            if (nearestTray && !AGV_Center_01.children.includes(nearestTray) && !hasTray(AGV_Center_01)) {
+                nearestTray.position.set(0, 0, 0);
+                AGV_Center_01.add(nearestTray);
+            }
+        } else if (event.key === 'e') {
+            const trayList = [tray_01, tray_02];
+            const tray = AGV_Center_01.children.find((child) => trayList.includes(child));
+    
+            if (tray) {
+                const trayWorldPosition = tray.getWorldPosition(new THREE.Vector3());
+                tray.position.copy(trayWorldPosition);
+                scene.add(tray);
+                AGV_Center_01.remove(tray);
+            }
         }
     }
 
