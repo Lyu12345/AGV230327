@@ -19,8 +19,8 @@ function App() {
     const containerRect = divContainer.getBoundingClientRect(); // 클릭위치 별도로 계산
     let orbitCtrl;
     const raycaster = new THREE.Raycaster();
-    let destination = null;
-    let mobileClickMode = false; // m신공.
+    let destinationM = null;
+    let moveClickMode = false; // m신공.
 
 
     setupCamera();
@@ -28,19 +28,21 @@ function App() {
     loadModel();
     setupBackgroundModel();
     setupLight();
+
     window.addEventListener('keydown', handleKeyDown);
     window.handleKeyDown = handleKeyDown; // html용. 이벤틀 리스너(?)에 등록.
     divContainer.addEventListener('mousemove', onMouseMove);
     window.addEventListener('resize', resize);
     renderer.domElement.addEventListener('mousedown', handleMouseDown, false);
     renderer.domElement.addEventListener('contextmenu', handleRightClick, false);
+    renderer.domElement.addEventListener('touchstart', handleTouchStart, false);
     resize();
     requestAnimationFrame(render);
 
     function loadModel() {
-        const RobotArms = new GLTFLoader();
+        const Robot01 = new GLTFLoader();
 
-        RobotArms.load('./assets/AGV_Center_01.gltf', (gltf) => {
+        Robot01.load('./assets/AGV_Center_01.gltf', (gltf) => {
             AGV_Center_01 = gltf.scene;
             AGV_Center_01.traverse((child) => {
                 if (child.isMesh) {
@@ -54,7 +56,7 @@ function App() {
             orbitCtrl = setupOrbitControls(); // AGV 로드 후 OrbitControls 설정
         });
 
-        RobotArms.load('./assets/tray_01.gltf', (gltf) => {
+        Robot01.load('./assets/tray_01.gltf', (gltf) => {
             tray_01 = gltf.scene;
             tray_01.position.set(-2, 0, -2);
             tray_01.traverse((child) => {
@@ -69,7 +71,7 @@ function App() {
             tray_01.castShadow = true;
         });
 
-        RobotArms.load('./assets/tray_01.gltf', (gltf) => {
+        Robot01.load('./assets/tray_01.gltf', (gltf) => {
             tray_02 = gltf.scene;
             tray_02.position.set(0, 0, -2);
             tray_02.traverse((child) => {
@@ -104,6 +106,23 @@ function App() {
         var plane_btm = new THREE.Mesh(geometry_btm, material_btm);
         plane_btm.receiveShadow = true;
         scene.add(plane_btm);
+    }
+
+    function setupLight() {
+        const lightH = new THREE.HemisphereLight(0xB1E1FF, 0xB97A20, 1);
+        scene.add(lightH);
+
+        const Directlight1 = new THREE.DirectionalLight(0xffffff, 0.5);
+        Directlight1.position.set(-5, 15, 5);
+        Directlight1.lookAt(0, 15, 0);// 효과없음. 
+        Directlight1.castShadow = true;
+        Directlight1.shadow.camera.left = -10;
+        Directlight1.shadow.camera.right = 10;
+        Directlight1.shadow.camera.top = 20;
+        Directlight1.shadow.camera.bottom = -10
+        scene.add(Directlight1);
+        // const cameraHelper = new THREE.CameraHelper(Directlight1.shadow.camera); 
+        // scene.add(cameraHelper); //toggle
     }
 
     function setupCamera() {
@@ -172,11 +191,11 @@ function App() {
     }
     function handleRightClick(event) {
         event.preventDefault(); // 기본 우클릭 메뉴 비활성화
-        if (event.button === 2 || (event.button === 0 && mobileClickMode)) {
+        if (event.button === 2 || (event.button === 0 && moveClickMode)) {
             const intersects = getIntersects(event.clientX, event.clientY);
 
-            if (destination) {
-                const point = destination;
+            if (destinationM) {
+                const point = destinationM;
                 createClickEffect(point);
 
                 if (event.shiftKey) {
@@ -202,6 +221,7 @@ function App() {
             }
         }
     }
+
     function moveToNextPoint() {
         if (moveQueue.length === 0) {
             return;
@@ -247,13 +267,13 @@ function App() {
     }
 
     function handleMouseDown(event) {
-        if (mobileClickMode && event.button === 0) {
+        if (moveClickMode && event.button === 0) {
             handleRightClick(event);
-            mobileClickMode = false;
+            moveClickMode = false;
             renderer.domElement.style.cursor = 'default'; // 커서 스타일을 원래대로 돌림
         } else if (event.button === 0 || event.button === 2) {
-            mobileClickMode = false;
-            renderer.domElement.style.cursor = 'default'; 
+            moveClickMode = false;
+            renderer.domElement.style.cursor = 'default';
         }
     }
 
@@ -262,7 +282,7 @@ function App() {
             TWEEN.removeAll();
             moveQueue = [];
         } else if (event.key === 'm') {
-            mobileClickMode = true ; 
+            moveClickMode = true;
             renderer.domElement.style.cursor = 'crosshair'
         }
 
@@ -321,8 +341,8 @@ function App() {
             }
         }
         if (['s', 'h', 'f', 'd', 'b', 'g', 'e'].includes(event.key)) {
-            mobileClickMode = false;
-            renderer.domElement.style.cursor = 'default'; 
+            moveClickMode = false;
+            renderer.domElement.style.cursor = 'default';
         }
 
     }
@@ -336,39 +356,42 @@ function App() {
         raycaster.setFromCamera(mouse, camera);
         const intersects1 = raycaster.intersectObjects([tray_01], true);
         const intersects2 = raycaster.intersectObjects([tray_02], true);
-    
-        if (mobileClickMode) {
+
+        if (moveClickMode) {
             renderer.domElement.style.cursor = 'crosshair';
         } else {
             if (intersects1.length > 0) {
                 renderer.domElement.style.cursor = 'pointer';
-                destination = tray_01.position.clone();
+                destinationM = tray_01.position.clone();
             } else if (intersects2.length > 0) {
                 renderer.domElement.style.cursor = 'pointer';
-                destination = tray_02.position.clone();
+                destinationM = tray_02.position.clone();
             } else {
                 renderer.domElement.style.cursor = 'default';
-                destination = null;
+                destinationM = null;
             }
         }
     }
 
-    function setupLight() {
-        const lightH = new THREE.HemisphereLight(0xB1E1FF, 0xB97A20, 1);
-        scene.add(lightH);
+    function handleTouchStart(event) {
+        event.preventDefault();
 
-        const Directlight1 = new THREE.DirectionalLight(0xffffff, 0.5);
-        Directlight1.position.set(-5, 15, 5);
-        Directlight1.lookAt(0, 15, 0);// 효과없음. 
-        Directlight1.castShadow = true;
-        Directlight1.shadow.camera.left = -10;
-        Directlight1.shadow.camera.right = 10;
-        Directlight1.shadow.camera.top = 20;
-        Directlight1.shadow.camera.bottom = -10
-        scene.add(Directlight1);
-        // const cameraHelper = new THREE.CameraHelper(Directlight1.shadow.camera); 
-        // scene.add(cameraHelper); //toggle
+        if (moveClickMode) {
+            const touch = event.touches[0] || event.changedTouches[0];
+
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                button: 2, // 우클릭 이벤트를 시뮬레이션하기 위해 button 값을 2로 설정
+                preventDefault: () => { } // 빈 함수를 추가하여 오류를 방지합니다.
+            });
+
+            renderer.domElement.dispatchEvent(mouseEvent);
+            moveClickMode = false;
+            renderer.domElement.style.cursor = 'default'; // 커서 스타일을 원래대로 돌림
+        }
     }
+
 
     function update(time) {
         time *= 0.001; // second unit
