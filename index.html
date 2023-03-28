@@ -42,13 +42,14 @@
     </style>
     <link rel="stylesheet" href="base1.css">
     <script type="module" src="script-base.js" defer></script>
+    </script>
 </head>
 
 <body>
     <div class="sidebar">
-        <a href="#">Home</a>
-        <a href="#">Features</a>
-        <a href="#">Pricing</a>
+        <a href="#">창고1</a>
+        <a href="#">창고2</a>
+        <a href="#">창고3</a>
     </div>
     <!-- 햄버거 메뉴 아이콘 추가 -->
     <div class="hamburger-menu" onclick="toggleSidebar()">
@@ -65,14 +66,15 @@
 
         <div class="webgl-wrapper">
             <div id="webgl-container"></div>
-            <div id="key-instructions">
-                <p>s: Stop</p>
-                <p>h: Hold</p>
-                <p>f: fly</p>
-                <p>d: down</p>
-                <p>b: back to center</p>
-                <p>g: Grab tray</p>
-                <p>e: Drop tray</p>
+            <div id="button-container">
+                <button id="stop-btn">Stop</button>
+                <button id="home-btn">Hold</button>
+                <button id="lift-btn">Fly AGV</button>
+                <button id="lower-btn">Mown AGV</button>
+                <button id="reset-btn">Back to center</button>
+                <button id="grab-btn">Grab tray</button>
+                <button id="drop-btn">Drop tray</button>
+                <button id="mobile-click-mode-btn">Move</button>
             </div>
         </div>
     </div>
@@ -90,6 +92,18 @@
             sidebar.style.width = '0px';
         }
     }
+</script>
+<script>
+	window.addEventListener('DOMContentLoaded', () => {
+			document.getElementById('stop-btn').addEventListener('click', () => window.handleKeyDown({ key: 's' }));
+			document.getElementById('home-btn').addEventListener('click', () => window.handleKeyDown({ key: 'h' }));
+			document.getElementById('lift-btn').addEventListener('click', () => window.handleKeyDown({ key: 'f' }));
+			document.getElementById('lower-btn').addEventListener('click', () => window.handleKeyDown({ key: 'd' }));
+			document.getElementById('reset-btn').addEventListener('click', () => window.handleKeyDown({ key: 'b' }));
+			document.getElementById('grab-btn').addEventListener('click', () => window.handleKeyDown({ key: 'g' }));
+			document.getElementById('drop-btn').addEventListener('click', () => window.handleKeyDown({ key: 'e' }));
+			document.getElementById('mobile-click-mode-btn').addEventListener('click', () => window.handleKeyDown({ key: 'm' }));
+	});
 </script>
 
 </html>
