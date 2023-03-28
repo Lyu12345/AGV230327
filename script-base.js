@@ -89,6 +89,21 @@ function App() {
     }
 
     function setupBackgroundModel() {
+        // Load HDR environment map
+        new RGBELoader().load('./HDR/Warehouse-with-lights.hdr', (texture) => {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            // this._scene.environment = texture;
+            scene.environment = texture;
+            // Create render target
+            const renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+            renderTarget.texture.format = THREE.RGBAFormat;
+            renderTarget.texture.type = THREE.FloatType;
+            renderTarget.texture.generateMipmaps = false;
+            //...
+        }, undefined, (error) => {
+            console.error(`Failed to load HDR file: ${error}`);
+        });
+
         scene.fog = new THREE.Fog(0xe0e0e0, 50, 80);
         let grid;
         grid = new THREE.GridHelper(100, 100, 0x000000, 0x000000);
@@ -96,14 +111,18 @@ function App() {
         grid.material.depthWrite = false;
         grid.material.transparent = true;
         scene.add(grid);
-        var geometry_btm = new THREE.PlaneGeometry(2000, 2000, 100, 100);
-        geometry_btm.rotateX(- Math.PI / 2);
-        var material_btm = new THREE.MeshStandardMaterial({
+
+        var geometry_btm1 = new THREE.PlaneGeometry(2000, 2000, 100, 100);
+        geometry_btm1.rotateX(- Math.PI / 2);
+        const texture_btm1 = new THREE.TextureLoader().load('./image/checkerboard4.png');
+        // 이거 사이즈 엄청 줄인다 그리드에 맞춰서.
+        var material_btm1 = new THREE.MeshStandardMaterial({
+            map: texture_btm1,
             color: 0xf0f0f0,
-            roughness: 0.3,
+            roughness: 0.9,
             // side: THREE.DoubleSide // 설정안하면 뒷면은 투명.
         });
-        var plane_btm = new THREE.Mesh(geometry_btm, material_btm);
+        var plane_btm = new THREE.Mesh(geometry_btm1, material_btm1);
         plane_btm.receiveShadow = true;
         scene.add(plane_btm);
     }
@@ -379,18 +398,21 @@ function App() {
         if (moveClickMode) {
             const touch = event.touches[0] || event.changedTouches[0];
 
-            const mouseEvent = new MouseEvent('mousedown', {
-                clientX: touch.clientX,
-                clientY: touch.clientY,
+            const touchX = touch.clientX;
+            const touchY = touch.clientY;
+
+            handleRightClick({
+                clientX: touchX,
+                clientY: touchY,
                 button: 2, // 우클릭 이벤트를 시뮬레이션하기 위해 button 값을 2로 설정
                 preventDefault: () => { } // 빈 함수를 추가하여 오류를 방지합니다.
             });
 
-            renderer.domElement.dispatchEvent(mouseEvent);
             moveClickMode = false;
             renderer.domElement.style.cursor = 'default'; // 커서 스타일을 원래대로 돌림
         }
     }
+
 
 
     function update(time) {
