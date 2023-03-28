@@ -29,6 +29,7 @@ function App() {
     setupBackgroundModel();
     setupLight();
     window.addEventListener('keydown', handleKeyDown);
+    window.handleKeyDown = handleKeyDown; // html용. 이벤틀 리스너(?)에 등록.
     divContainer.addEventListener('mousemove', onMouseMove);
     window.addEventListener('resize', resize);
     renderer.domElement.addEventListener('mousedown', handleMouseDown, false);
@@ -392,7 +393,6 @@ function App() {
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     }
-
 }
 
 // Setup the animation loop.
@@ -403,6 +403,8 @@ function animate(time) {
 requestAnimationFrame(animate);
 
 window.addEventListener('load', App);
+
+// export { handleKeyDown };
 
 import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r115/build/three.module.js';
 import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r115/examples/jsm/controls/OrbitControls.js';
