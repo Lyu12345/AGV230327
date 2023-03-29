@@ -22,9 +22,7 @@ function App() {
     let destinationM = null;
     let moveClickMode = false; // m신공.
 
-
     setupCamera();
-    // orbitCtrl = setupOrbitControls();
     loadModel();
     setupBackgroundModel();
     setupLight();
@@ -86,22 +84,24 @@ function App() {
             tray_02.castShadow = true;
         });
 
+        // Robot01.load('./assets/Box_Center.gltf', (gltf) => {
+        //     const Box_Center = gltf.scene;
+        //     Box_Center.traverse((child) => {
+        //         if (child.isMesh) {
+        //             child.material.side = THREE.FrontSide; //앞면만
+        //         }
+        //     });
+        //     scene.add(Box_Center);
+        // });
     }
 
     function setupBackgroundModel() {
-        // Load HDR environment map
-        new RGBELoader().load('./HDR/Warehouse-with-lights.hdr', (texture) => {
+        new RGBELoader()
+        .setDataType(THREE.FloatType) // 해상도보정, 자원 많이먹음.
+        .load('./HDR/Warehouse-with-lights.hdr', (texture) => {
             texture.mapping = THREE.EquirectangularReflectionMapping;
-            // this._scene.environment = texture;
+            scene.background = texture;
             scene.environment = texture;
-            // Create render target
-            const renderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
-            renderTarget.texture.format = THREE.RGBAFormat;
-            renderTarget.texture.type = THREE.FloatType;
-            renderTarget.texture.generateMipmaps = false;
-            //...
-        }, undefined, (error) => {
-            console.error(`Failed to load HDR file: ${error}`);
         });
 
         scene.fog = new THREE.Fog(0xe0e0e0, 50, 80);
@@ -111,15 +111,17 @@ function App() {
         grid.material.depthWrite = false;
         grid.material.transparent = true;
         scene.add(grid);
-
-        var geometry_btm1 = new THREE.PlaneGeometry(2000, 2000, 100, 100);
+        var geometry_btm1 = new THREE.PlaneGeometry(256, 256, 100, 100);
         geometry_btm1.rotateX(- Math.PI / 2);
         const texture_btm1 = new THREE.TextureLoader().load('./image/checkerboard4.png');
-        // 이거 사이즈 엄청 줄인다 그리드에 맞춰서.
+        texture_btm1.wrapS = THREE.RepeatWrapping;
+        texture_btm1.wrapT = THREE.RepeatWrapping;
+        texture_btm1.repeat.set(128, 128);
         var material_btm1 = new THREE.MeshStandardMaterial({
             map: texture_btm1,
             color: 0xf0f0f0,
-            roughness: 0.9,
+            roughness: 0.8, //거울 효과는 여기서
+            metalness: 0.2, //이건 그냥 밝기조절용
             // side: THREE.DoubleSide // 설정안하면 뒷면은 투명.
         });
         var plane_btm = new THREE.Mesh(geometry_btm1, material_btm1);
@@ -208,6 +210,7 @@ function App() {
             geometry.dispose();
         }, animationDuration);
     }
+
     function handleRightClick(event) {
         event.preventDefault(); // 기본 우클릭 메뉴 비활성화
         if (event.button === 2 || (event.button === 0 && moveClickMode)) {
@@ -413,8 +416,6 @@ function App() {
         }
     }
 
-
-
     function update(time) {
         time *= 0.001; // second unit
         if (AGV_Center_01) {
@@ -438,22 +439,23 @@ function App() {
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     }
+    // Setup the animation loop.
+    function animate(time) {
+        requestAnimationFrame(animate);
+        TWEEN.update(time);
+    }
+    requestAnimationFrame(animate);
 }
 
-// Setup the animation loop.
-function animate(time) {
-    requestAnimationFrame(animate);
-    TWEEN.update(time);
-}
-requestAnimationFrame(animate);
 
 window.addEventListener('load', App);
 
 // export { handleKeyDown };
 
-import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r115/build/three.module.js';
-import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r115/examples/jsm/controls/OrbitControls.js';
-import { GLTFLoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r115/examples/jsm/loaders/GLTFLoader.js';
-import { GUI } from 'https://threejsfundamentals.org/threejs/../3rdparty/dat.gui.module.js';
-import { RGBELoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r115/examples/jsm/loaders/RGBELoader.js';
+import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/build/three.module.js'; //r115에서 hdr이슈.
+import { OrbitControls } from 'https://threejsfundamentals.org/threejs/resources/threejs/r115/examples/jsm/controls/OrbitControls.js'; //r125 m신공 버그
+import { GLTFLoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/GLTFLoader.js';
+import { RGBELoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r125/examples/jsm/loaders/RGBELoader.js';
 import * as TWEEN from 'https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.esm.min.js';
+
+import { GUI } from 'https://threejsfundamentals.org/threejs/../3rdparty/dat.gui.module.js';
